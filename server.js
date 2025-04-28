@@ -22,7 +22,7 @@ app.post('/api/message', async (req, res) => {
     await sql.connect(dbConfig);
     await sql.query`INSERT INTO Messages (content, sender) VALUES (${content}, 'user')`;
     await sql.query`INSERT INTO Messages (content, sender) VALUES ('Merci pour votre message!', 'server')`;
-    res.status(200).send('Message reçu');
+    res.status(200).send('Message bien reçu');
   } catch (err) {
     console.error(err);
     res.status(500).send('Erreur serveur');
