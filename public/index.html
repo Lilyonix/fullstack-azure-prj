@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>App Full Stack</title>
+</head>
+<body>
+  <h1>Messagerie Full Stack Azure</h1>
+  <input type="text" id="userInput" placeholder="Tapez un message..." />
+  <button onclick="sendMessage()">Envoyer</button>
+
+  <ul id="messagesList"></ul>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById('userInput');
+      const message = input.value;
+      if (!message) return;
+
+      await fetch('/api/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: message })
+      });
+      input.value = '';
+      loadMessages();
+    }
+
+    async function loadMessages() {
+      const res = await fetch('/api/messages');
+      const messages = await res.json();
+      const list = document.getElementById('messagesList');
+      list.innerHTML = '';
+      messages.forEach(m => {
+        const item = document.createElement('li');
+        item.textContent = (m.sender === 'user' ? 'Moi: ' : 'Bot: ') + m.content;
+        list.appendChild(item);
+      });
+    }
+
+    loadMessages();
+  </script>
+</body>
+</html>
