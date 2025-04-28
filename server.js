@@ -22,10 +22,10 @@ app.post('/api/message', async (req, res) => {
     await sql.connect(dbConfig);
     await sql.query`INSERT INTO Messages (content, sender) VALUES (${content}, 'user')`;
     await sql.query`INSERT INTO Messages (content, sender) VALUES ('Merci pour votre message!', 'server')`;
-    res.status(200).send('Message reçu');
+    res.status(200).json({ message: 'Message bien reçu' });
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Erreur serveur');
+    console.error('Erreur SQL détaillée POST /api/message:', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -35,8 +35,8 @@ app.get('/api/messages', async (req, res) => {
     const result = await sql.query`SELECT * FROM Messages ORDER BY created_at ASC`;
     res.json(result.recordset);
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Erreur serveur');
+    console.error('Erreur SQL détaillée GET /api/messages:', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
