@@ -14,29 +14,25 @@ const dbConfig = {
   }
 };
 
-let pool;
-
-async function connectToDatabase() {
-  if (!pool) {
-    try {
-      pool = await sql.connect(dbConfig);
-      console.log('Connexion à la base SQL réussie');
-    } catch (err) {
-      console.error('Erreur connexion SQL:', err.message);
-    }
-  }
-}
-
 app.use(express.static('public'));
 app.use(express.json());
 
+async function connectDB() {
+  try {
+    const pool = await sql.connect(dbConfig);
+    return pool;
+  } catch (err) {
+    console.error('Erreur connexion SQL :', err.message);
+    throw new Error('Erreur connexion SQL : ' + err.message);
+  }
+}
 
 app.post('/api/message', async (req, res) => {
   const { content } = req.body;
   if (!content) return res.status(400).json({ error: 'Contenu vide' });
 
   try {
-    await connectToDatabase();
+    const pool = await connectDB();
     await pool.request()
         .input('content', sql.NVarChar, content)
         .input('sender', sql.NVarChar, 'user')
@@ -49,23 +45,21 @@ app.post('/api/message', async (req, res) => {
 
     res.status(200).json({ message: 'Message bien reçu' });
   } catch (err) {
-    console.error('Erreur SQL POST /api/message:', err.message);
+    console.error('Erreur API POST /api/message :', err.message);
     res.status(500).json({ error: err.message });
   }
 });
-
 
 app.get('/api/messages', async (req, res) => {
   try {
-    await connectToDatabase();
+    const pool = await connectDB();
     const result = await pool.request().query('SELECT * FROM Messages ORDER BY created_at ASC');
     res.json(result.recordset);
   } catch (err) {
-    console.error('Erreur SQL GET /api/messages:', err.message);
+    console.error('Erreur API GET /api/messages :', err.message);
     res.status(500).json({ error: err.message });
   }
 });
-
 
 app.listen(port, () => {
   console.log(`Serveur démarré sur le port ${port}`);
