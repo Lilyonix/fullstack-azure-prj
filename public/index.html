@@ -5,30 +5,56 @@
   <title>App Full Stack</title>
 </head>
 <body>
-  <h1>Messagerie Full Stack sur Azure</h1>
-  <input type="text" id="userInput" placeholder="Tapez un message..." />
-  <button onclick="sendMessage()">Envoyer</button>
+<h1>Messagerie Full Stack sur Azure</h1>
 
-  <ul id="messagesList"></ul>
+<input type="text" id="userInput" placeholder="Tapez un message..." />
+<button onclick="sendMessage()">Envoyer</button>
 
-  <script>
-    async function sendMessage() {
-      const input = document.getElementById('userInput');
-      const message = input.value;
-      if (!message) return;
+<!-- Affichage des erreurs -->
+<p id="errorMsg" style="color: red;"></p>
 
-      await fetch('/api/message', {
+<!-- Liste des messages -->
+<ul id="messagesList"></ul>
+
+<script>
+  async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const errorDisplay = document.getElementById('errorMsg');
+    const message = input.value.trim();
+    if (!message) return;
+
+    try {
+      const response = await fetch('/api/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: message })
       });
-      input.value = '';
-      loadMessages();
-    }
 
-    async function loadMessages() {
+      const result = await response.json();
+
+      if (!response.ok) {
+        errorDisplay.textContent = `Erreur serveur : ${result.error || 'inconnue'}`;
+      } else {
+        errorDisplay.textContent = '';
+        input.value = '';
+        await loadMessages();
+      }
+    } catch (error) {
+      console.error('Erreur fetch', error);
+      errorDisplay.textContent = 'Erreur réseau ou inattendue';
+    }
+  }
+
+  async function loadMessages() {
+    const errorDisplay = document.getElementById('errorMsg');
+    try {
       const res = await fetch('/api/messages');
       const messages = await res.json();
+      if (!Array.isArray(messages)) {
+        errorDisplay.textContent = 'Erreur : la réponse reçue n’est pas une liste de messages.';
+        return;
+      }
+      errorDisplay.textContent = '';
       const list = document.getElementById('messagesList');
       list.innerHTML = '';
       messages.forEach(m => {
@@ -36,9 +62,13 @@
         item.textContent = (m.sender === 'user' ? 'Moi: ' : 'Bot: ') + m.content;
         list.appendChild(item);
       });
+    } catch (error) {
+      console.error('Erreur lors du chargement des messages :', error);
+      errorDisplay.textContent = 'Impossible de charger les messages';
     }
+  }
 
-    loadMessages();
-  </script>
+  loadMessages();
+</script>
 </body>
 </html>

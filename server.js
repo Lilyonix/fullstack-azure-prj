@@ -34,7 +34,7 @@ app.post('/api/message', async (req, res) => {
     res.status(200).json({ message: 'Message bien reçu' });
   } catch (err) {
     console.error('Erreur SQL POST /api/message:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, full: err });
   }
 });
 
