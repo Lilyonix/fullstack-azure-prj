@@ -51,6 +51,15 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
+app.get('/api/debug-env', (req, res) => {
+  res.json({
+    DB_USER: process.env.DB_USER,
+    DB_PASSWORD: process.env.DB_PASSWORD ? '***' : null,
+    DB_SERVER: process.env.DB_SERVER,
+    DB_NAME: process.env.DB_NAME
+  });
+});
+
 app.listen(port, () => {
   console.log(`Serveur démarré sur le port ${port}`);
 });
